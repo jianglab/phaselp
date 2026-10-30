@@ -80,7 +80,7 @@ Phases are kept below `s0` and randomized increasingly up to `s1`.
 
 ```bash
 phaselp filter  parent.mrc filtered.mrc --target-res 13.2 --parent-res 3.0
-phaselp compare parent.mrc experimental.mrc results/ --target-res 13.2 --seeds 4 --plots
+phaselp compare parent.mrc experimental.mrc results/ --parent-res 3.0 --target-res 13.2 --seeds 4 --plots
 phaselp fsc     a.mrc b.mrc --out fsc.csv --plot fsc.png
 ```
 
