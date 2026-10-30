@@ -1,0 +1,50 @@
+# Publish phaselp to PyPI when a GitHub release is published (tag v<version>, e.g. v1.1.1).
+# One-time setup on https://pypi.org/manage/account/publishing/ : add a pending publisher with
+#   PyPI project "phaselp", owner "jianglab", repository "phaselp", workflow "publish.yml", environment "pypi".
+name: Publish to PyPI
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.x"
+      - name: Check that the release tag matches the package version
+        run: |
+          version=$(python -c 'import tomllib; print(tomllib.load(open("pyproject.toml", "rb"))["project"]["version"])')
+          test "${GITHUB_REF_NAME#v}" = "$version" || { echo "tag $GITHUB_REF_NAME does not match version $version"; exit 1; }
+      - name: Test
+        run: |
+          python -m pip install ".[dev]"
+          python -m pytest -q
+      - name: Build
+        run: |
+          python -m pip install build
+          python -m build
+      - uses: actions/upload-artifact@v5
+        with:
+          name: dist
+          path: dist/
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/phaselp
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v6
+        with:
+          name: dist
+          path: dist/
+      - uses: pypa/gh-action-pypi-publish@release/v1

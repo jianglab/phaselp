@@ -1,0 +1,39 @@
+{
+  "high": {
+    "accession": "EMD-8750",
+    "entry": "https://www.emdataresource.org/EMD-8750",
+    "original_shape": [
+      240,
+      240,
+      240
+    ],
+    "shape": [
+      108,
+      108,
+      108
+    ],
+    "original_voxel_A": 1.2300000190734863,
+    "voxel_A": 2.700000286102295,
+    "resampling": "phaselp.resample_to_grid (anti-aliased, linear) onto a 108^3 grid at the EMD-1080 voxel size, box centres aligned, as Step 1 does; the 100^3 reference grid is an exact sub-grid. Script: scripts/make_demo.py",
+    "sha256_original_uncompressed": "113f7ce350e0b2633e4fb5d887f516517ff3ff3e5e26fcadbd2b5e99629899d2",
+    "sha256_voxel_data_float32": "9610037452db70f423c862e398362b5ce4cc8b76828f23f9d8050271700f80bd"
+  },
+  "low": {
+    "accession": "EMD-1080",
+    "entry": "https://www.emdataresource.org/EMD-1080",
+    "original_shape": [
+      100,
+      100,
+      100
+    ],
+    "shape": [
+      100,
+      100,
+      100
+    ],
+    "original_voxel_A": 2.700000286102295,
+    "voxel_A": 2.700000286102295,
+    "resampling": "none; original map bytes preserved",
+    "sha256_uncompressed": "a7cee00c7e695dae7139156086c7b27713e459bb012c22d8b80d7adf55003fd7"
+  }
+}

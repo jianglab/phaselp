@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>phaselp</title>
+<script src="https://cdn.jsdelivr.net/npm/ngl@2.3.1/dist/ngl.js"></script>
+<style>
+  :root{
+    --bg:#f6f7f9; --panel:#ffffff; --ink:#1a1d21; --muted:#5b6472; --line:#e2e6ec;
+    --accent:#0072b2; --accent2:#009e73; --warn:#d55e00; --ok:#1a7f4b;
+    --shadow:0 1px 3px rgba(20,25,35,.08),0 1px 2px rgba(20,25,35,.04);
+  }
+  @media (prefers-color-scheme:dark){:root{
+    --bg:#14171c; --panel:#1c2026; --ink:#e8ecf1; --muted:#9aa4b2; --line:#2b313a;
+    --accent:#4aa3df; --accent2:#4bcfa3; --warn:#f0864a;
+    --shadow:0 1px 3px rgba(0,0,0,.4);
+  }}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+  header{padding:20px 28px;border-bottom:1px solid var(--line);background:var(--panel)}
+  header h1{margin:0;font-size:20px;letter-spacing:.2px}
+  header p{margin:4px 0 0;color:var(--muted);max-width:72ch}
+  main{max-width:1120px;margin:0 auto;padding:22px 20px 80px}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;
+    box-shadow:var(--shadow);padding:18px 20px;margin-bottom:18px}
+  .panel h2{margin:0 0 4px;font-size:16px}
+  .panel .sub{color:var(--muted);margin:0 0 14px;font-size:13px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media(max-width:760px){.grid2{grid-template-columns:1fr}}
+  label{display:block;font-weight:600;margin:0 0 4px;font-size:13px}
+  select,input[type=text],input[type=number]{width:100%;padding:8px 10px;border:1px solid var(--line);
+    border-radius:8px;background:var(--bg);color:var(--ink);font-size:13px}
+  input[type=file]{font-size:13px}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:end}
+  .row>div{flex:1;min-width:120px}
+  .params{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:6px}
+  @media(max-width:760px){.params{grid-template-columns:repeat(2,1fr)}}
+  .check{display:flex;align-items:center;gap:8px;font-weight:600;font-size:13px}
+  .check input{width:auto}
+  button{cursor:pointer;border:0;border-radius:9px;padding:10px 16px;font-size:14px;font-weight:600;
+    background:var(--accent);color:#fff}
+  button.secondary{background:transparent;color:var(--accent);border:1px solid var(--accent)}
+  button:disabled{opacity:.45;cursor:not-allowed}
+  .muted{color:var(--muted)}
+  .step{opacity:.55;transition:opacity .2s}
+  .step.active{opacity:1}
+  .step .head{display:flex;align-items:center;gap:12px;justify-content:space-between}
+  /* collapsible section headers (steps + inputs) */
+  .head{cursor:pointer;user-select:none}
+  .caret{display:inline-block;width:.8em;text-align:center;color:var(--muted);
+    transition:transform .15s;transform:rotate(0deg)}
+  .collapsed .caret{transform:rotate(-90deg)}
+  .step.collapsed [data-body]{display:none}
+  #inputPanel.collapsed #inputBody{display:none}
+  /* per-step collapsible "plots & metrics" (leaves the 3-D viewer visible) */
+  .anhead{cursor:pointer;user-select:none;display:inline-flex;align-items:center;gap:6px;
+    font-size:11px;font-weight:700;color:var(--muted);margin:6px 0;letter-spacing:.05em;text-transform:uppercase}
+  .ancaret{display:inline-block;transition:transform .15s}
+  .analytics.collapsed .ancaret{transform:rotate(-90deg)}
+  .analytics.collapsed .anbody{display:none}
+  /* post-alignment filter controls: "Filter to" slider + action buttons */
+  .filterctl{margin-top:6px;padding:12px;border:1px solid var(--line);border-radius:10px;background:var(--panel)}
+  .filterbar{display:flex;flex-wrap:wrap;gap:14px;align-items:center;justify-content:space-between}
+  .filterto{display:inline-flex;align-items:center;gap:8px;font-weight:600;font-size:13px}
+  .filterto input[type=range]{width:150px}
+  .filterto input[type=number]{width:72px}
+  .filterto .unit{color:var(--muted);font-weight:400}
+  .modes{display:inline-flex;gap:14px;align-items:center;font-size:13px;font-weight:600}
+  .modes label{display:inline-flex;align-items:center;gap:5px;cursor:pointer}
+  .modes input{width:auto;margin:0}
+  .fscacts{display:flex;gap:8px;margin:10px 0 2px}
+  .fscacts button{padding:6px 12px;font-size:12px;font-weight:600;border-radius:7px;
+    background:transparent;color:var(--accent);border:1px solid var(--accent)}
+  .fscacts button:disabled{opacity:.45;cursor:not-allowed}
+  .badge{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:#fff;
+    background:var(--muted);border-radius:20px;padding:3px 10px}
+  .badge.done{background:var(--ok)} .badge.run{background:var(--accent)} .badge.err{background:var(--warn)}
+  .qcimg{width:100%;max-width:1000px;border:1px solid var(--line);border-radius:8px;background:#fff;margin-top:12px}
+  .pairsync{display:flex;justify-content:flex-end;align-items:center;gap:8px;margin:14px 0 6px;
+    font-size:12px;color:var(--muted)}
+  .pairsync input{width:auto}
+  .viewpair{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media(max-width:760px){.viewpair{grid-template-columns:1fr}}
+  .vbox{border:1px solid var(--line);border-radius:8px;overflow:hidden}
+  .vwrap{display:grid;grid-template-columns:1fr 1fr}
+  @media(max-width:520px){.vwrap{grid-template-columns:1fr}}
+  .vbox .viewer{height:300px;background:#0b0d10;position:relative;overflow:hidden}
+  .vbox .viewer .cap{position:absolute;left:8px;top:8px;color:#cdd6e0;font-size:11px;
+    background:rgba(0,0,0,.4);padding:2px 8px;border-radius:6px;z-index:2}
+  .vbox .slice2d{width:100%;height:300px;object-fit:contain;background:#0b0d10;
+    border-left:1px solid var(--line)}
+  @media(max-width:520px){.vbox .slice2d{border-left:0;border-top:1px solid var(--line)}}
+  .vctl{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;font-size:12px;color:var(--muted);
+    border-top:1px solid var(--line);padding:8px 10px;background:var(--panel)}
+  .vctl .grp{display:flex;align-items:center;gap:6px}
+  .vctl input[type=range]{width:110px}
+  .vctl select{width:auto;padding:3px 6px}
+  .fscrow{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:12px;align-items:start}
+  @media(max-width:760px){.fscrow{grid-template-columns:1fr}}
+  .qcimg2{width:100%;border:1px solid var(--line);border-radius:8px;background:#fff}
+  .fscchart{border:1px solid var(--line);border-radius:8px;padding:8px;background:var(--panel)}
+  .fscsvg{width:100%;height:auto;display:block}
+  .fscsvg *{pointer-events:none}
+  .fscsvg .ovl{pointer-events:all;cursor:crosshair}
+  .fscbtns{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+  .fscbtns button{padding:6px 12px;font-size:12px;border-radius:7px}
+  .fscbtns button.on{box-shadow:0 0 0 2px var(--accent)}
+  table.metrics{border-collapse:collapse;width:100%;margin-top:12px;font-size:13px}
+  table.metrics td{padding:5px 8px;border-bottom:1px solid var(--line)}
+  table.metrics td:first-child{color:var(--muted);white-space:nowrap}
+  table.metrics td:last-child{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
+  .dl{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+  .dl a{display:inline-block;text-decoration:none;color:var(--accent);border:1px solid var(--accent);
+    border-radius:8px;padding:7px 12px;font-weight:600;font-size:13px}
+  .spinner{width:16px;height:16px;border:2px solid var(--line);border-top-color:var(--accent);
+    border-radius:50%;display:inline-block;animation:spin .8s linear infinite;vertical-align:-3px}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .err{color:var(--warn);white-space:pre-wrap;font-size:12px;margin-top:10px;
+    background:rgba(213,94,0,.08);border:1px solid rgba(213,94,0,.3);border-radius:8px;padding:10px;
+    max-height:220px;overflow:auto}
+  .hint{font-size:12px;color:var(--muted);margin-top:4px}
+</style>
+<link rel="stylesheet" href="./enhancements.css">
+<link rel="icon" href="data:,">
+</head>
+<body>
+<header>
+  <h1><span class="site-mark" aria-hidden="true">≈</span>phaselp <span class="site-tag">Browser app</span></h1>
+  <p>Filter a high-resolution cryo-EM map to the resolution of a lower-resolution map with ramped phase randomization, then compare the two, one step at a time.</p>
+</header>
+<div class="engine" id="engine"><span class="engine-dot"></span><span id="engineStatus" role="status">Loading compute engine…</span><button id="engineCheck" class="secondary" title="Run an FSC self-check on a tiny map">Check engine</button></div>
+<main>
+<nav class="workflow" aria-label="Analysis workflow"><span><b>1</b> Align</span><i></i><span><b>2</b> Filter</span><i></i><span><b>3</b> Match amplitudes</span><i></i><span><b>4</b> Compare</span></nav>
+  <!-- INPUT ------------------------------------------------------------ -->
+  <section class="panel" id="inputPanel">
+    <div class="head" id="inputHead"><div style="display:flex;align-items:center;gap:10px"><span class="caret">▾</span><h2>Inputs</h2></div></div>
+    <div id="inputBody">
+    <p class="sub">Upload two MRC maps, or give an EMD accession, or a PDB id (its model density is simulated).</p>
+    <div class="grid2">
+      <div class="src" data-role="high">
+        <label>High-resolution map (parent)</label>
+        <select class="srcType">
+          <option value="demo">Bundled EMDB demo</option>
+          <option value="upload">Upload MRC/MAP</option>
+          <option value="emd">EMD id</option>
+          <option value="pdb">PDB id (simulate density)</option>
+        </select>
+        <div class="srcUpload" style="margin-top:8px"><input type="file" accept=".mrc,.map,.gz,.ccp4"></div>
+        <div class="srcEmd" hidden style="margin-top:8px"><input type="text" placeholder="e.g. 25420"></div>
+        <div class="srcPdb" hidden style="margin-top:8px">
+          <input type="text" placeholder="e.g. 4v6x">
+          <div class="row" style="margin-top:8px">
+            <div><label>sim. resolution (Å)</label><input type="number" class="simres" value="3.0" step="0.5"></div>
+            <div><label>sim. voxel (Å)</label><input type="number" class="simapix" value="1.5" step="0.5"></div>
+          </div>
+          <div class="hint">Resolution the model is blurred to (Gaussian FWHM). Simulate the parent finer than the low reference; keep voxel ≤ ½ resolution.</div>
+        </div>
+      </div>
+      <div class="src" data-role="low">
+        <label>Low-resolution map (reference)</label>
+        <div class="lowbody">
+          <select class="srcType">
+            <option value="demo">Bundled EMDB demo</option>
+          <option value="upload">Upload MRC/MAP</option>
+            <option value="emd">EMD id</option>
+            <option value="pdb">PDB id (simulate density)</option>
+          </select>
+          <div class="srcUpload" style="margin-top:8px"><input type="file" accept=".mrc,.map,.gz,.ccp4"></div>
+          <div class="srcEmd" hidden style="margin-top:8px"><input type="text" placeholder="e.g. 5262"></div>
+          <div class="srcPdb" hidden style="margin-top:8px">
+            <input type="text" placeholder="e.g. 4v6x">
+            <div class="row" style="margin-top:8px">
+              <div><label>sim. resolution (Å)</label><input type="number" class="simres" value="3.0" step="0.5"></div>
+              <div><label>sim. voxel (Å)</label><input type="number" class="simapix" value="1.5" step="0.5"></div>
+            </div>
+            <div class="hint">Resolution the model is blurred to (Gaussian FWHM). Simulate the parent finer than the low reference; keep voxel ≤ ½ resolution.</div>
+          </div>
+        </div>
+        <label class="check" style="margin-top:10px"><input type="checkbox" id="noRef"> No low-resolution reference (filter the high map alone)</label>
+      </div>
+    </div>
+
+    <div class="source-note">Startup demo: EMD-8750 (resampled to 108³ at 2.7 Å, the reference voxel size) and EMD-1080 (100³ at 2.7 Å), 5 MB in all. Step 1 works on the reference grid unless you choose a coarser one. Files and results stay in this tab.</div>
+<div class="row" style="margin:12px 0"><div><label for="emdbCap">EMDB download grid cap (vox)</label><input type="number" id="emdbCap" min="0" max="256" value="160"></div><div><label for="alignRes">Alignment resolution (Å)</label><input type="number" id="alignRes" min="0.1" step="0.5" value="10"><div class="hint">band limit of the registration NCC; use the target resolution</div></div></div>
+<div class="params" id="alignParams">
+      <div><label>orientation search</label>
+        <select id="orient"><option value="global" selected>global</option><option value="local">local</option></select>
+        <div class="hint">global: best of 24 principal-axis starts</div>
+      </div>
+      <div><label>translation bound (vox)</label><input type="number" id="transBound" value="20" step="1"></div>
+      <div><label>alignment search grid (vox)</label><input type="number" id="maxDim" value="96" min="32" max="256" step="8"><div class="hint">optimizer grid (96 in the manuscript); smaller is faster</div></div>
+      <div style="align-self:end;display:flex;flex-direction:column;gap:8px">
+        <label class="check"><input type="checkbox" id="standardize" checked> standardize inputs</label>
+        <label class="check"><input type="checkbox" id="skipReg"> skip registration</label>
+      </div>
+    </div>
+
+    <div style="margin-top:16px" class="row">
+      <button id="loadBtn" disabled>Load maps</button>
+      <button class="secondary" id="resetBtn">Reset</button>
+      <span id="loadStatus" class="muted"></span>
+    </div>
+    <div id="inputErr" role="alert" class="err" hidden></div>
+
+    <div id="inputResult" hidden>
+      <div class="grid2" style="margin-top:16px">
+        <div class="muted" id="highMeta"></div>
+        <div class="muted" id="lowMeta"></div>
+      </div>
+      <div id="inputPair"></div>
+    </div>
+    </div>
+  </section>
+
+  <!-- STEPS ------------------------------------------------------------ -->
+  <section id="steps" hidden>
+    <div class="panel step" id="step-register" data-step="register" data-title="Step 1 · resample + align"></div>
+    <div class="panel step" id="step-filter" data-step="filter" data-title="Step 2 · filter (choose a mode)"></div>
+    <div class="panel step" id="step-amplitude" data-step="amplitude" data-title="Step 3 · radial amplitude matching"></div>
+    <div class="panel step" id="step-compare" data-step="compare" data-title="Comparison"></div>
+  </section>
+</main>
+
+<script type="module" src="./app.js"></script>
+<script>
+// Browsers block module scripts and workers on file:// pages, so the engine would never start.
+if (location.protocol === "file:") {
+  document.getElementById("engineStatus").textContent = "The app cannot start from a file on disk";
+  const box = document.getElementById("inputErr");
+  box.hidden = false;
+  box.textContent = "This page was opened directly from disk (file://), where browsers block its scripts. "
+    + "Serve the folder instead: run  python -m http.server 8000  in the phaselp folder, then open "
+    + "http://localhost:8000/apps/ . The published GitHub Pages site works as is.";
+}
+</script>
+</body>
+</html>

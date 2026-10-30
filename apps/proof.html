@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><title>phaselp engine check</title>
+<h1>Browser compute check</h1>
+<p>Runs phaselp.fsc on a tiny map in a single-threaded worker.</p>
+<button id="run">Run FSC check</button><pre id="result" role="status"></pre>
+<script type="module">
+const worker = new Worker('./worker.js', {type: 'module'});
+worker.onmessage = ({data}) => {
+  document.querySelector('#result').textContent = data.status || JSON.stringify(data, null, 2);
+  if (data.id) document.querySelector('#run').disabled = false;
+};
+document.querySelector('#run').onclick = () => {
+  document.querySelector('#run').disabled = true;
+  worker.postMessage({id: 1, method: 'proof'});
+};
+</script></html>

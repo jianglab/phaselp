@@ -1,0 +1,44 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "phaselp"
+version = "1.1.1"
+description = "Low-pass filtering with ramped phase randomization for cryo-EM map comparison and data augmentation."
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "Lan Dang" }, { name = "Wen Jiang" }]
+keywords = ["cryo-em", "low-pass filter", "phase randomization", "FSC", "data augmentation"]
+classifiers = [
+  "Intended Audience :: Science/Research",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Scientific/Engineering :: Bio-Informatics",
+  "Topic :: Scientific/Engineering :: Image Processing",
+]
+dependencies = ["numpy>=1.23", "scipy>=1.9", "mrcfile>=1.4", "matplotlib>=3.6"]
+
+[project.urls]
+Homepage = "https://github.com/jianglab/phaselp"
+"Browser app" = "https://jianglab.github.io/phaselp/"
+Issues = "https://github.com/jianglab/phaselp/issues"
+
+[project.optional-dependencies]
+dev = ["pytest>=7"]
+
+[project.scripts]
+phaselp = "phaselp.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
